@@ -1,0 +1,23 @@
+SELECT -- string_agg(concat(CSAT,":", score), ", ") AS csat_score,  
+assignee, first_name, last_name, round((good_score/(bad_score + good_score)) * 100, 1)  AS csat_score
+
+FROM
+
+(SELECT assignee,
+  COUNTIF(json_extract_scalar(CSAT,
+      "$.score") = "bad") AS bad_score,
+      
+   COUNTIF(json_extract_scalar(CSAT,
+      "$.score") = "good") AS good_score
+FROM
+  `product-marketing.brayden.zendesk_tickets_all`
+  
+WHERE
+ (json_extract_scalar(CSAT,
+    "$.score") = "good" OR json_extract_scalar(CSAT,
+    "$.score") = "bad")
+    
+    GROUP BY assignee) 
+    
+    LEFT JOIN(SELECT email, first_name, last_name FROM `repcore-prod.vstore_demo_identity_access.vstore_pc_users`)
+    ON email = assignee
